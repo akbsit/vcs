@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -11,7 +12,14 @@ GIT_PULLED = 'pulled'
 GIT_CLONED = 'cloned'
 
 
-def fetch_workspaces(username: str, password: str) -> List[str]:
+@dataclass
+class BitbucketConfig:
+    username: str
+    password: str
+    base_dir: str
+
+
+def fetch_workspaces(config: BitbucketConfig) -> List[str]:
     logging.info('Fetching all accessible workspaces...')
 
     url = 'https://api.bitbucket.org/2.0/workspaces'
@@ -19,7 +27,7 @@ def fetch_workspaces(username: str, password: str) -> List[str]:
     workspaces = []
 
     while url:
-        response = requests.get(url, auth=(username, password))
+        response = requests.get(url, auth=(config.username, config.password))
 
         if response.status_code != 200:
             logging.warning(f"Failed to fetch workspaces: {response.status_code}")
@@ -32,7 +40,7 @@ def fetch_workspaces(username: str, password: str) -> List[str]:
     return workspaces
 
 
-def fetch_repositories(workspace: str, username: str, password: str) -> List[Dict]:
+def fetch_repositories(workspace: str, config: BitbucketConfig) -> List[Dict]:
     logging.info('Fetching all accessible repositories...')
 
     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}?pagelen=100"
@@ -40,7 +48,7 @@ def fetch_repositories(workspace: str, username: str, password: str) -> List[Dic
     repositories = []
 
     while url:
-        response = requests.get(url, auth=(username, password))
+        response = requests.get(url, auth=(config.username, config.password))
 
         if response.status_code != 200:
             logging.warning(f"Failed to fetch repositories: {response.status_code}")
@@ -53,9 +61,9 @@ def fetch_repositories(workspace: str, username: str, password: str) -> List[Dic
     return repositories
 
 
-def repository_has_commits(repository: Dict, username: str, password: str) -> bool:
+def repository_has_commits(repository: Dict, config: BitbucketConfig) -> bool:
     commits_url = repository['links']['commits']['href']
-    response = requests.get(commits_url, auth=(username, password))
+    response = requests.get(commits_url, auth=(config.username, config.password))
 
     if response.status_code != 200:
         logging.warning(f"Failed to fetch commits for {repository['full_name']}")
@@ -66,7 +74,7 @@ def repository_has_commits(repository: Dict, username: str, password: str) -> bo
     return bool(data.get('values'))
 
 
-def clone_or_pull_repository(repository: Dict, username: str, password: str) -> str:
+def clone_or_pull_repository(repository: Dict, config: BitbucketConfig) -> str:
     clone_url = next(link['href'] for link in repository['links']['clone'] if link['name'] == 'ssh')
     workspace = repository['workspace']['slug']
 
@@ -76,13 +84,13 @@ def clone_or_pull_repository(repository: Dict, username: str, password: str) -> 
 
     repository_name = repository['name']
 
-    local_path = os.path.join('./bitbucket', workspace, repository_name)
+    local_path = os.path.join(f"./bitbucket/{config.base_dir}", workspace, repository_name)
     os.makedirs(local_path, exist_ok=True)
 
     if os.path.exists(local_path) and os.listdir(local_path):
         logging.info(f"[{workspace}/{repository_name}] Pulling...")
 
-        if repository_has_commits(repository, username, password):
+        if repository_has_commits(repository, config):
             subprocess.run(['git', '-C', local_path, 'fetch'], check=True)
             subprocess.run(['git', '-C', local_path, 'pull'], check=True)
 
@@ -98,19 +106,25 @@ def clone_or_pull_repository(repository: Dict, username: str, password: str) -> 
 def process_item(item: Dict[str, Any]) -> None:
     logging.info(f"Processing bitbucket account: {item.get('username')}")
 
+    config = BitbucketConfig(
+        username=item.get('username'),
+        password=item.get('password'),
+        base_dir=item.get('base_dir')
+    )
+
     start_time = datetime.now()
 
     errors = []
     pulled = []
     cloned = []
 
-    workspaces = fetch_workspaces(item.get('username'), item.get('password'))
+    workspaces = fetch_workspaces(config)
 
     for workspace in workspaces:
-        repositories = fetch_repositories(workspace, item.get('username'), item.get('password'))
+        repositories = fetch_repositories(workspace, config)
 
         for repository in repositories:
-            result = clone_or_pull_repository(repository, item.get('username'), item.get('password'))
+            result = clone_or_pull_repository(repository, config)
             full_name = f"{workspace}/{repository['name']}"
 
             if result == GIT_ERROR:

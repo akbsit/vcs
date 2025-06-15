@@ -2,7 +2,8 @@
   "bitbucket": [
     {
       "username": "username",
-      "password": "password"
+      "password": "password",
+      "base_dir": "base_dir"
     }
   ]
 }
