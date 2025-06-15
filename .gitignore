@@ -80,3 +80,5 @@ fabric.properties
 ###< jetbrains ###
 
 .idea/commandlinetools/
+
+config.json
