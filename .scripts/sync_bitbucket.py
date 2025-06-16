@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import requests
 
 GIT_ERROR = 'error'
-GIT_PULLED = 'pulled'
+GIT_FETCHED = 'fetched'
 GIT_CLONED = 'cloned'
 
 
@@ -74,7 +74,7 @@ def repository_has_commits(repository: Dict, config: BitbucketConfig) -> bool:
     return bool(data.get('values'))
 
 
-def clone_or_pull_repository(repository: Dict, config: BitbucketConfig) -> str:
+def clone_or_fetch_repository(repository: Dict, config: BitbucketConfig) -> str:
     clone_url = next(link['href'] for link in repository['links']['clone'] if link['name'] == 'ssh')
     workspace = repository['workspace']['slug']
 
@@ -88,13 +88,12 @@ def clone_or_pull_repository(repository: Dict, config: BitbucketConfig) -> str:
     os.makedirs(local_path, exist_ok=True)
 
     if os.path.exists(local_path) and os.listdir(local_path):
-        logging.info(f"[{workspace}/{repository_name}] Pulling...")
+        logging.info(f"[{workspace}/{repository_name}] Fetching...")
 
         if repository_has_commits(repository, config):
             subprocess.run(['git', '-C', local_path, 'fetch'], check=True)
-            subprocess.run(['git', '-C', local_path, 'pull'], check=True)
 
-        return GIT_PULLED
+        return GIT_FETCHED
     else:
         logging.info(f"[{workspace}/{repository_name}] Cloning...")
 
@@ -115,7 +114,7 @@ def process_item(item: Dict[str, Any]) -> None:
     start_time = datetime.now()
 
     errors = []
-    pulled = []
+    fetched = []
     cloned = []
 
     workspaces = fetch_workspaces(config)
@@ -124,18 +123,18 @@ def process_item(item: Dict[str, Any]) -> None:
         repositories = fetch_repositories(workspace, config)
 
         for repository in repositories:
-            result = clone_or_pull_repository(repository, config)
+            result = clone_or_fetch_repository(repository, config)
             full_name = f"{workspace}/{repository['name']}"
 
             if result == GIT_ERROR:
                 errors.append(full_name)
-            elif result == GIT_PULLED:
-                pulled.append(full_name)
+            elif result == GIT_FETCHED:
+                fetched.append(full_name)
             elif result == GIT_CLONED:
                 cloned.append(full_name)
 
     logging.info('Processing bitbucket account completed')
-    logging.info(f"🟢 Pulled: {len(pulled)}")
+    logging.info(f"🟢 Fetched: {len(fetched)}")
     logging.info(f"🆕 Cloned: {len(cloned)}")
     logging.info(f"❌ Errors: {len(errors)}")
 
