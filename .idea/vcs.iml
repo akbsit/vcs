@@ -5,6 +5,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/bitbucket" />
       <excludeFolder url="file://$MODULE_DIR$/sandbox" />
+      <excludeFolder url="file://$MODULE_DIR$/github" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (vcs)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

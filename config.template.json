@@ -5,5 +5,11 @@
       "password": "password",
       "base_dir": "base_dir"
     }
+  ],
+  "github": [
+    {
+      "username": "username",
+      "base_dir": "base_dir"
+    }
   ]
 }

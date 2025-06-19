@@ -2,6 +2,7 @@ import json
 import logging
 
 from sync_bitbucket import sync_bitbucket
+from sync_github import sync_github
 from utils.logger import setup_logger
 
 
@@ -14,6 +15,7 @@ def sync() -> None:
         logging.info('Loaded file config')
 
         sync_bitbucket(config.get('bitbucket'))
+        sync_github(config.get('github'))
     except Exception as exception:
         logging.error(exception)
 
