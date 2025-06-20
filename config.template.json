@@ -9,6 +9,7 @@
   "github": [
     {
       "username": "username",
+      "token": "token",
       "base_dir": "base_dir"
     }
   ]

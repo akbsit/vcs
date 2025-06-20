@@ -15,15 +15,18 @@ GIT_CLONED = 'cloned'
 @dataclass
 class GithubConfig:
     username: str
+    token: str
     base_dir: str
 
 
 def fetch_repositories(config: GithubConfig) -> List[Dict]:
     logging.info('Fetching all accessible repositories...')
 
-    url = f"https://api.github.com/users/{config.username}/repos"
+    url = 'https://api.github.com/user/repos'
 
-    response = requests.get(url)
+    response = requests.get(url, headers={
+        'Authorization': f"token {config.token}"
+    })
 
     if response.status_code != 200:
         logging.warning(f"Failed to fetch repositories: {response.status_code}")
@@ -39,7 +42,9 @@ def repository_has_commits(repository: Dict, config: GithubConfig) -> bool:
 
     url = f"https://api.github.com/repos/{config.username}/{repository_name}/commits"
 
-    response = requests.get(url)
+    response = requests.get(url, headers={
+        'Authorization': f"token {config.token}"
+    })
 
     if response.status_code != 200:
         return False
@@ -79,6 +84,7 @@ def process_item(item: Dict[str, Any]) -> None:
 
     config = GithubConfig(
         username=item.get('username'),
+        token=item.get('token'),
         base_dir=item.get('base_dir')
     )
 
