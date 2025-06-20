@@ -12,5 +12,12 @@
       "token": "token",
       "base_dir": "base_dir"
     }
+  ],
+  "gitlab": [
+    {
+      "username": "username",
+      "token": "token",
+      "base_dir": "base_dir"
+    }
   ]
 }

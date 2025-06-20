@@ -43,7 +43,7 @@ def fetch_workspaces(config: BitbucketConfig) -> List[str]:
 def fetch_repositories(workspace: str, config: BitbucketConfig) -> List[Dict]:
     logging.info('Fetching all accessible repositories...')
 
-    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}?pagelen=100"
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}"
 
     repositories = []
 

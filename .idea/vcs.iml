@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/bitbucket" />
       <excludeFolder url="file://$MODULE_DIR$/sandbox" />
       <excludeFolder url="file://$MODULE_DIR$/github" />
+      <excludeFolder url="file://$MODULE_DIR$/gitlab" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (vcs)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

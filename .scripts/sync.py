@@ -3,6 +3,7 @@ import logging
 
 from sync_bitbucket import sync_bitbucket
 from sync_github import sync_github
+from sync_gitlab import sync_gitlab
 from utils.logger import setup_logger
 
 
@@ -16,6 +17,7 @@ def sync() -> None:
 
         sync_bitbucket(config.get('bitbucket'))
         sync_github(config.get('github'))
+        sync_gitlab(config.get('gitlab'))
     except Exception as exception:
         logging.error(exception)
 

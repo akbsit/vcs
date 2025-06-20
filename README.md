@@ -19,12 +19,16 @@
 
 - [![Bitbucket][bitbucket-shield]][bitbucket-url]
 - [![Github][github-shield]][github-url]
+- [![Gitlab][gitlab-shield]][gitlab-url]
 
 [bitbucket-shield]: https://img.shields.io/badge/bitbucket-20232A?style=for-the-badge&logo=bitbucket
 [bitbucket-url]: https://bitbucket.org/
 
 [github-shield]: https://img.shields.io/badge/github-20232A?style=for-the-badge&logo=github
 [github-url]: https://github.com/
+
+[gitlab-shield]: https://img.shields.io/badge/gitlab-20232A?style=for-the-badge&logo=gitlab
+[gitlab-url]: https://about.gitlab.com/
 
 ## Project setup
 
