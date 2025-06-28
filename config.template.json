@@ -3,21 +3,24 @@
     {
       "username": "username",
       "password": "password",
-      "base_dir": "base_dir"
+      "base_dir": "base_dir",
+      "exclude": []
     }
   ],
   "github": [
     {
       "username": "username",
       "token": "token",
-      "base_dir": "base_dir"
+      "base_dir": "base_dir",
+      "exclude": []
     }
   ],
   "gitlab": [
     {
       "username": "username",
       "token": "token",
-      "base_dir": "base_dir"
+      "base_dir": "base_dir",
+      "exclude": []
     }
   ]
 }

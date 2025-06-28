@@ -1,10 +1,12 @@
 from abc import ABC
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass
 class Config(ABC):
     username: str
+    exclude: List[str]
 
 
 @dataclass
