@@ -37,6 +37,17 @@
 To configure the project, create a configuration file based on `config.template.json` and name it `config.json`, then
 fill in the required settings.
 
+Optionally specify the local Git user information for each provider repository via the optional gitconfig block:
+
+```json
+{
+  "gitconfig": {
+    "name": "name",
+    "email": "email"
+  }
+}
+```
+
 ### Compile and run the project
 
 ```shell

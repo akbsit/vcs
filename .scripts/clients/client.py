@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Generic, TypeVar, List, Dict
 
-from .configs import Config
+from .configs import Config, GitUserConfig
 
 T = TypeVar('T', bound=Config)
 
@@ -16,7 +16,7 @@ GIT_CLONED = 'cloned'
 
 
 class Client(ABC, Generic[T]):
-    def __init__(self, config: T):
+    def __init__(self, config: T) -> None:
         self.config = config
 
     @property
@@ -43,18 +43,13 @@ class Client(ABC, Generic[T]):
     def _has_commits(self, repository: Dict) -> bool:
         pass
 
-    def sync(self):
-        logging.info(f"Processing {self.provider}")
-        logging.info(f"Account {self.account}")
+    def sync(self) -> None:
+        self._log_start()
 
         start_time = datetime.now()
-
-        excluded = []
-        errors = []
-        fetched = []
-        cloned = []
-
+        excluded, errors, fetched, cloned = [], [], [], []
         repositories = self._fetch_repositories()
+
         for repository in repositories:
             repository_name = self._repository_name(repository)
 
@@ -87,8 +82,34 @@ class Client(ABC, Generic[T]):
             logging.warning('Repositories with errors:')
             for name in errors: logging.warning(f" - {name}")
 
-        duration = (datetime.now() - start_time).total_seconds()
-        logging.info(f"⏱ Total time: {duration:.2f}s")
+        self._log_end(start_time)
+
+    def git(self) -> None:
+        self._log_start()
+
+        gitconfig = self.config.gitconfig
+
+        if gitconfig is None:
+            logging.info('Skipped (git configuration not found)')
+            return
+
+        start_time = datetime.now()
+        repositories = self._fetch_repositories()
+
+        for repository in repositories:
+            repository_name = self._repository_name(repository)
+
+            if repository_name in self.config.exclude:
+                logging.info(f"[{repository_name}] Skipped (in exclude list)")
+                continue
+
+            self._update_gitconfig(
+                repository_name,
+                self._get_local_path(repository),
+                gitconfig
+            )
+
+        self._log_end(start_time)
 
     def _get_local_path(self, repository: Dict) -> str:
         return os.path.join(
@@ -97,6 +118,15 @@ class Client(ABC, Generic[T]):
             self.config.base_dir,
             self._repository_name(repository),
         )
+
+    def _log_start(self) -> None:
+        logging.info(f"Processing {self.provider}")
+        logging.info(f"Account {self.account}")
+
+    @staticmethod
+    def _log_end(start_time: datetime) -> None:
+        duration = (datetime.now() - start_time).total_seconds()
+        logging.info(f"⏱ Total time: {duration:.2f}s")
 
     @staticmethod
     def _clone_or_fetch(repository_name: str, clone_url: str, local_path: str, has_commits: bool) -> str:
@@ -116,7 +146,24 @@ class Client(ABC, Generic[T]):
                 subprocess.run(['git', 'clone', clone_url, local_path], check=True)
 
                 return GIT_CLONED
+        except subprocess.CalledProcessError as exception:
+            logging.error(f"[{repository_name}] Git command failed: {exception}")
         except Exception as exception:
             logging.error(f"[{repository_name}] Unexpected error: {exception}")
 
         return GIT_ERROR
+
+    @staticmethod
+    def _update_gitconfig(repository_name: str, local_path: str, gitconfig: GitUserConfig) -> None:
+        if not os.path.exists(os.path.join(local_path, '.git')):
+            return
+
+        try:
+            subprocess.run(['git', '-C', local_path, 'config', 'user.name', gitconfig.name], check=True)
+            subprocess.run(['git', '-C', local_path, 'config', 'user.email', gitconfig.email], check=True)
+
+            logging.info(f"[{repository_name}] Set local git config (user.name / user.email)")
+        except subprocess.CalledProcessError as exception:
+            logging.error(f"[{repository_name}] Git command failed: {exception}")
+        except Exception as exception:
+            logging.error(f"[{repository_name}] Unexpected error: {exception}")
