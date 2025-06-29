@@ -51,5 +51,5 @@ Optionally specify the local Git user information for each provider repository v
 ### Compile and run the project
 
 ```shell
-make setup && make
+make setup && make && make git
 ```

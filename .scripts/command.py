@@ -9,7 +9,7 @@ from clients.gitlab_client import GitlabClient
 from utils.logger import setup_logger
 
 
-def process(action: Callable[[Any], None]) -> None:
+def process(action: Callable[[Any], None], provider: str) -> None:
     setup_logger()
 
     try:
@@ -24,13 +24,16 @@ def process(action: Callable[[Any], None]) -> None:
 
             return cls(**cfg)
 
-        for config_item in config.get('bitbucket'):
-            action(BitbucketClient(prepare_config(config_item, BitbucketConfig)))
+        if provider is None or provider == 'bitbucket':
+            for config_item in config.get('bitbucket'):
+                action(BitbucketClient(prepare_config(config_item, BitbucketConfig)))
 
-        for config_item in config.get('github'):
-            action(GithubClient(prepare_config(config_item, GithubConfig)))
+        if provider is None or provider == 'github':
+            for config_item in config.get('github'):
+                action(GithubClient(prepare_config(config_item, GithubConfig)))
 
-        for config_item in config.get('gitlab'):
-            action(GitlabClient(prepare_config(config_item, GitlabConfig)))
+        if provider is None or provider == 'gitlab':
+            for config_item in config.get('gitlab'):
+                action(GitlabClient(prepare_config(config_item, GitlabConfig)))
     except Exception as exception:
         logging.error(exception)
