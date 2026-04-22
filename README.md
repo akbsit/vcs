@@ -30,6 +30,10 @@
 [gitlab-shield]: https://img.shields.io/badge/gitlab-20232A?style=for-the-badge&logo=gitlab
 [gitlab-url]: https://about.gitlab.com/
 
+## Docs
+
+* [Git workflow](.docs/git-workflow.md).
+
 ## Project setup
 
 ### Project configuration
