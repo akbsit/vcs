@@ -44,7 +44,7 @@ class Client(ABC, Generic[T]):
         pass
 
     def sync(self) -> None:
-        self._log_start()
+        self.__log_start()
 
         start_time = datetime.now()
         excluded, errors, fetched, cloned = [], [], [], []
@@ -58,10 +58,10 @@ class Client(ABC, Generic[T]):
                 excluded.append(repository_name)
                 continue
 
-            result = self._clone_or_fetch(
+            result = Client.__clone_or_fetch(
                 repository_name,
                 self._get_clone_url(repository),
-                self._get_local_path(repository),
+                self.__get_local_path(repository),
                 self._has_commits(repository),
             )
 
@@ -82,10 +82,10 @@ class Client(ABC, Generic[T]):
             logging.warning('Repositories with errors:')
             for name in errors: logging.warning(f" - {name}")
 
-        self._log_end(start_time)
+        Client.__log_end(start_time)
 
     def git(self) -> None:
-        self._log_start()
+        self.__log_start()
 
         gitconfig = self.config.gitconfig
 
@@ -103,15 +103,15 @@ class Client(ABC, Generic[T]):
                 logging.info(f"[{repository_name}] Skipped (in exclude list)")
                 continue
 
-            self._update_gitconfig(
+            Client.__update_gitconfig(
                 repository_name,
-                self._get_local_path(repository),
+                self.__get_local_path(repository),
                 gitconfig
             )
 
-        self._log_end(start_time)
+        Client.__log_end(start_time)
 
-    def _get_local_path(self, repository: Dict) -> str:
+    def __get_local_path(self, repository: Dict) -> str:
         return os.path.join(
             './',
             self.provider,
@@ -119,17 +119,17 @@ class Client(ABC, Generic[T]):
             self._repository_name(repository),
         )
 
-    def _log_start(self) -> None:
+    def __log_start(self) -> None:
         logging.info(f"Processing {self.provider}")
         logging.info(f"Account {self.account}")
 
     @staticmethod
-    def _log_end(start_time: datetime) -> None:
+    def __log_end(start_time: datetime) -> None:
         duration = (datetime.now() - start_time).total_seconds()
         logging.info(f"⏱ Total time: {duration:.2f}s")
 
     @staticmethod
-    def _clone_or_fetch(repository_name: str, clone_url: str, local_path: str, has_commits: bool) -> str:
+    def __clone_or_fetch(repository_name: str, clone_url: str, local_path: str, has_commits: bool) -> str:
         try:
             os.makedirs(local_path, exist_ok=True)
 
@@ -154,7 +154,7 @@ class Client(ABC, Generic[T]):
         return GIT_ERROR
 
     @staticmethod
-    def _update_gitconfig(repository_name: str, local_path: str, gitconfig: GitUserConfig) -> None:
+    def __update_gitconfig(repository_name: str, local_path: str, gitconfig: GitUserConfig) -> None:
         if not os.path.exists(os.path.join(local_path, '.git')):
             return
 

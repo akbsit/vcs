@@ -19,22 +19,20 @@ class BitbucketClient(Client[BitbucketConfig]):
     def _fetch_repositories(self) -> List[Dict]:
         repositories = []
 
-        workspaces = self._fetch_workspaces()
-        for workspace in workspaces:
-            logging.info('Fetching all accessible repositories...')
+        logging.info('Fetching all accessible repositories...')
 
-            url = f"https://api.bitbucket.org/2.0/repositories/{workspace}"
+        url = f"https://api.bitbucket.org/2.0/repositories/{self.config.base_dir}"
 
-            while url:
-                response = requests.get(url, auth=(self.config.username, self.config.password))
+        while url:
+            response = requests.get(url, auth=(self.config.username, self.config.password))
 
-                if response.status_code != 200:
-                    logging.warning(f"Failed to fetch repositories: {response.status_code}")
-                    break
+            if response.status_code != 200:
+                logging.warning(f"Failed to fetch repositories: {response.status_code}")
+                break
 
-                data = response.json()
-                repositories.extend(data['values'])
-                url = data.get('next')
+            data = response.json()
+            repositories.extend(data['values'])
+            url = data.get('next')
 
         return repositories
 
@@ -55,23 +53,3 @@ class BitbucketClient(Client[BitbucketConfig]):
 
     def _get_clone_url(self, repository: Dict) -> str:
         return next(link['href'] for link in repository['links']['clone'] if link['name'] == 'ssh')
-
-    def _fetch_workspaces(self) -> List[str]:
-        logging.info('Fetching all accessible workspaces...')
-
-        url = 'https://api.bitbucket.org/2.0/workspaces'
-
-        workspaces = []
-
-        while url:
-            response = requests.get(url, auth=(self.config.username, self.config.password))
-
-            if response.status_code != 200:
-                logging.warning(f"Failed to fetch workspaces: {response.status_code}")
-                break
-
-            data = response.json()
-            workspaces.extend([ws['slug'] for ws in data['values']])
-            url = data.get('next')
-
-        return workspaces
